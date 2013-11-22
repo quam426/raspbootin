@@ -29,6 +29,7 @@
 #include <endian.h>
 #include <stdint.h>
 #include <termios.h>
+#include <signal.h>
 
 #define BUF_SIZE 65536
 
@@ -42,6 +43,12 @@ void do_exit(int fd, int res) {
 	tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
     }
     exit(res);
+}
+
+void reset_terminal(int) {
+   if (isatty(STDIN_FILENO)) {
+    tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
+    }
 }
 
 // open serial connection
@@ -196,6 +203,8 @@ int main(int argc, char *argv[]) {
     bool done = false, leave = false;
     int breaks = 0;
 
+    signal(SIGINT, reset_terminal);
+    signal(SIGTERM, reset_terminal);
     printf("Raspbootcom V1.0\n");
 
     if (argc != 3) {
